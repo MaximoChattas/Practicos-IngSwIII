@@ -54,6 +54,24 @@ Se verifica que los cambios pueden verse desde Github.
 Utilizando el repositorio creado en el [paso 4](#paso-4), creamos en él una nueva rama llamada "Rama_A". Dentro de esta rama, se modificó el archivo README.md y se hizo un commit. Finalmente, se verificó la direrencia entre la rama main y esta nueva.
 ![Imagen Paso 6](Paso%206.jpg)
 
+## Paso 7
+### Merge Fast Forward
+En primer lugar, se hace un merge Fast-Forward. Luego, se suben los cambios al repositorio remoto y se elimina la rama creada. Finalmente, se ve el log de commits.
+
+Comandos utilizados:
+1. `git merge` : fusiona ramas (mueve el puntero hacia adelante).
+2. `git branch -d` : elimina la rama.
+3. `git push` : sube los cambios al repositorio remoto.
+4. `git log --oneline` : muestra el log de commits.
+![Imagen Paso 7a](Paso%207a.jpg)
+
+### Merge No Fast Forward
+Similar al paso anterior, creamos una nueva rama (Rama_B), pero antes de cambiarnos a ella, se hace un cambio en un archivo en la rama main (y un commit del mismo). Luego, nos movemos a esta nueva rama y realizamos un cambio en el archivo gitignore, del cual también hacemos commit. Finalmente, nos movemos nuevamente a la rama main y realizamos merge, pero esta vez de tipo No Fast Forward debido a que hubo cambios en ambas ramas, y eliminamos Rama_B.
+![Imagen Paso 7b](Paso%207b.jpg)
+
+Se muestra a continuación el log de lo descripto anteriormente.
+![Imagen Paso 7c](Paso%207c.jpg)
+
 ## Paso 10
 Ejercicios introductorios completados.
 ![Imagen Paso 10](Paso%2010.jpg)
