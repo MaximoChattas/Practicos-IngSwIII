@@ -244,3 +244,60 @@ Como se puede ver, el archivo "hola.txt" fue creado tanto en el contenedor, como
 ![Imagen Paso 10b (Host)](Paso%2010b%20(Host).jpg)
 
 Nota: la diferencia de horario entre la creación de ambos archivos se debe a que el contenedor tiene un huso horario diferente al dispositivo host.
+
+## Paso 11
+En primer lugar, se creó el contenedor con la imagen de Postgres y se montó un volúmen en una carpeta ".postgres" dentro de un directorio local del dispositivo.
+
+![Imagen Paso 11a](Paso%2011a.jpg)
+
+Luego, se ingresó al contenedor (en modo interactivo con el modificador -it) y operamos dentro de PostgreSQL, donde se creó una nueva tabla, se insertó una tupla en dicha tabla y se mostró la misma. Finalmente, se cerró la sesión con Postgres y salimos del contenedor.
+
+![Imagen Paso 11b](Paso%2011b.jpg)
+
+- Mediante el comando `docker run` el contenedor fue creado y quedó en estado "Running".
+- Mediante el comando `docker exec`, utilizando el modificador -it se obtuvo acceso a la shell dentro del contenedor.
+
+Para poder visualizar los datos de forma más ordenada y clara, nos conectamos a la instancia de Postgres utilizando la IDE DBeaver. Se puede ver a continuación que desde la misma insertamos una nueva fila en la tabla_a con el texto "Hola desde DBeaver!".
+
+![Imagen Paso 11c](Paso%2011c.jpg)
+
+Verificamos desde la consola del contenedor que la fila se insertó correctamente.
+
+![Imagen Paso 11d](Paso%2011d.jpg)
+
+## Paso 12
+A continuación, se realizará el mismo proceso que en el paso anterior, pero esta vez utilizando el motor de base de datos SQL Server.
+
+En primer lugar, se creó un directorio en el dispositivo host en donde luego se montará el volúmen para permitir la persistencia de los datos, incluso si se elimina el contenedor. Este directorio se encuentra en el path:
+```
+/Users/maxichattas/Documents/UCC/4º Año/Ingeniería de Software III/Práctico/Prácticos/SQL Server
+```
+
+Luego, mediante el comando `docker pull mcr.microsoft.com/mssql/server:2022-latest` descargamos la imagen de SQL Server desde Docker Hub.
+
+![Imagen Paso 12a](Paso%2012a.jpg)
+
+Mediante el comando:
+`docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Mypassword123' -p 1433:1433 --name sqlserver -v "/Users/maxichattas/Documents/UCC/4º Año/Ingeniería de Software III/Práctico/Prácticos/SQL Server:/var/opt/mssql" -d mcr.microsoft.com/mssql/server:2022-latest`
+se inicia la ejecución del contenedor que tiene la imagen de SQL Server. A continuación se explican los modificadores y variables utilizadas:
+- `-e 'ACCEPT_EULA=Y'` : acepta los términos y condiciones de la licencia de SQL Server.
+- `SA_PASSWORD=Mypassword123` : establece la contraseña del SA (System Administrator).
+- `-p 1433:1433` : Expone y mapea el puerto 1433 del contenedor al puerto 1433 del dispositivo host.
+- `--name sqlserver` : establece el nombre del contenedor.
+- `-v "/Users/maxichattas/Documents/UCC/4º Año/Ingeniería de Software III/Práctico/Prácticos/SQL Server:/var/opt/mssql"` : monta un volúmen en los directorios especificados.
+- `-d` : corre el contenedor en modo "detached" (no se ingresa al shell del contenedor).
+- ` mcr.microsoft.com/mssql/server:2022-latest` : imagen utilizada.
+
+![Imagen Paso 12b](Paso%2012b.jpg)
+
+Se utilizó el comando:
+`docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Mypassword123' -C`
+para acceder a la consola de SQL Server y poder operar con los elementos del motor.
+
+Luego de ingresar, se creó una nueva base de datos (test), una tabla dentro de la base de datos (tabla_a) y se insertó un elemento en ella, que luego fue mostado mediante un SELECT.
+
+![Imagen Paso 12c](Paso%2012c.jpg)
+
+A su vez, esta instancia de SQL Server fue accedida mediante la IDE DBeaver, como se muestra a continuación.
+
+![Imagen Paso 12d](Paso%2012d.jpg)
