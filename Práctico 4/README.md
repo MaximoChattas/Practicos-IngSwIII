@@ -63,7 +63,30 @@ Se observa la ejecución de la aplicación desde el navegador del dispositivo.
 ![Imagen Paso 6d](Paso%206d.jpg)
 
 ## Paso 7
-- COMPLETAR !
+### CI en Classic Editor
+Se habilita CI (continuous integration) en el pipeline construido utilizando el classic editor, opción que por defecto se encuentra deshabilitada.
+
+![Imagen Paso 7a](Paso%207a.jpg)
+
+### CI en YAML
+En el pipeline construido utilizando YAML, CI (continuous integration) por defecto se encuentra habilitado, como se muestra a continuación.
+
+![Imagen Paso 7b](Paso%207b.jpg)
+
+### Ejecución automática de pipelines
+A partir de las opciones habilitadas en los pasos anteriores, al hacer un commit en la main branch ambos pipelines se ejecutan de manera automática, construyendo la nueva versión del producto.
+
+Para probar que CI haya sido configurado correctamente, en primer lugar se realiza un commit sobre la main branch.
+
+![Imagen Paso 7c](Paso%207c.jpg)
+
+Este commit automáticamente provocó que los pipelines configurados anteriormente comiencen a ejecutarse, como se muestra a continuación.
+
+![Imagen Paso 7d](Paso%207d.jpg)
+
+Una vez finalizada la ejecución, se tiene la nueva versión del producto modificado.
+
+![Imagen Paso 7e](Paso%207e.jpg)
 
 ## Paso 8
 Los agentes son software encargados de correr pipelines, que a su vez corren en una determinada máquina.
