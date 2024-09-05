@@ -3,7 +3,11 @@
 ## Paso 1
 Se verifica el acceso concedido a los pipelines probando correr uno de ellos.
 
-![Imagen Paso 1](Paso%201.jpg)
+![Imagen Paso 1a](Paso%201a.jpg)
+
+A su vez, se adjunta el mail recibido por parte de Azure DevOps confirmando el acceso concedido.
+
+![Imagen Paso 1b](Paso%201b.jpg)
 
 ## Paso 2
 Se agrega en el pipeline una tarea de publish y se hace un commit de los cambios. Esto automáticamente corre el pipeline nuevamente.
@@ -162,3 +166,55 @@ Una vez descomprimido el archivo, mediante el comando `dotnet SimpleWebAPI.dll` 
 Su resultado se pudo ver en el navegador del dispositivo, ingresando a [localhost:5000/weatherforecast](http://localhost:5000/weatherforecast) como se muestra a continuación.
 
 ![Imagen Paso 12c](Paso%2012c.jpg)
+
+## Paso 13
+Para el siguiente desafío, fue creado un nuevo proyecto en Azure DevOps denominado `Sample03 (Angular)`, que utiliza un repositorio con una aplicación de Angular.
+
+[https://github.com/ingsoft3ucc/angular-demo-project](https://github.com/ingsoft3ucc/angular-demo-project)
+
+![Imagen Paso 13](Paso%2013.jpg)
+
+## Paso 14
+Luego, se creó un build pipeline para el proyecto de Angular anteriormente clonado. Para esto, se utilizó un archivo de tipo YAML.
+
+![Imagen Paso 14a](Paso%2014a.jpg)
+
+El archivo fue obtenido de una contribución a una publicación de StackOverFlow que se adjunta a continuación.
+[https://stackoverflow.com/questions/76985518/build-and-deployment-of-nodejs-with-angular-using-asude-pipeline-and-appservice](https://stackoverflow.com/questions/76985518/build-and-deployment-of-nodejs-with-angular-using-asude-pipeline-and-appservice)
+
+A este archivo fue necesario realizarle algunas modificaciones, pero luego de estas, el pipeline fue ejecutado de manera exitosa.
+
+![Imagen Paso 14b](Paso%2014b.jpg)
+
+## Paso 15
+Anteriormente se mostró que el pipeline contiene la siguiente porción de código:
+```
+trigger:
+- main
+```
+Esto significa que CI ya se encuentra implementado, y por ende el pipeline será ejecutado de manera automática cuando se realice un commit en la main branch.
+
+## Paso 16
+Para demostrar la correcta implementación de CI en el pipeline, se realiza un cambio en el encabezado de la pantalla principal de la aplicación para hacer un commit en la rama main.
+
+![Imagen Paso 16a](Paso%2016a.jpg)
+
+Este cambio desencadenó la ejecución automática del pipeline anteriormente definido, el cual finalizó exitosamente.
+
+![Imagen Paso 16b](Paso%2016b.jpg)
+
+## Paso 17
+Luego de la exitosa ejecución del pipeline, se descargaron los artefactos resultantes. Estos fueron descomprimidos y finalmente se inició el servidor en el puerto :8080.
+
+![Imagen Paso 17](Paso%2017.jpg)
+
+## Paso 18
+### Original
+Se muestra a continuación la página original, resultado de la ejecución del pipeline en el [Paso 14](#paso-14).
+
+![Imagen Paso 18a](Paso%2018a.jpg)
+
+### Modificado
+Se muestra a continuación página con su encabezado modificado, resultado de la ejecución del pipeline en el [Paso 16](#paso-16)
+
+![Imagen Paso 18b](Paso%2018b.jpg)
