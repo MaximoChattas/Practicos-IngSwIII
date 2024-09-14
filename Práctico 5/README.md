@@ -37,7 +37,9 @@ Se muestra el resultado con el pipeline renombrado.
 ![Imagen Paso 3c](Paso%203c.jpg)
 
 ## Paso 4
-COMPLETAR
+Se actualiza el build pipeline para que utilice tareas de DotNetCoreCLI@2.
+
+![Imagen Paso 4](Paso%204.jpg)
 
 ## Paso 5
 Para verificar el correcto deploy de la aplicación en el recurso creado anteriormente, en primer lugar se ejecuta el release pipeline, que finaliza con resultado exitoso.
