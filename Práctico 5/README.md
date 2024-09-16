@@ -87,7 +87,7 @@ Finalmente, navegamos a la URL provista por la segunda Web App [(https://chattas
 ## Paso 8
 Para hacer uso de la segunda Web App desplegada anteriormente, se agrega una nueva etapa al release pipeline previamente creado, que permite realizar un deploy en la Web App de producción (Prod).
 
-![Imagen Paso 8a](paso%208a.jpg)
+![Imagen Paso 8a](Paso%208a.jpg)
 
 Las configuraciones que se utilizaron en esta etapa se encuentran detalladas a continuación.
 
