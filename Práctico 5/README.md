@@ -156,3 +156,133 @@ De este modo, el deploy a prod se completa con éxito.
 Se muestra que en el ambiente de producción, el sitio fue actualizado a la última versión con 5 pronósticos.
 
 ![Imagen Paso 13](Paso%2013.jpg)
+
+## Paso 14
+Para crear un release pipeline utilizando un archivo YAML que permita hacer los deploy en QA y PROD, se utilizaron múltiples fases o "stages". Este pipeline descarga el artifact generado por el build pipeline "Sample02" creado en prácticos anteriores, y se ejecuta en 3 etapas separadas:
+1. Deploy a QA.
+2. Aprobación manual para PROD.
+3. Deploy a Prod.
+
+Cada etapa es dependiente de la anterior, por lo que en caso de fallo, el pipeline no continúa ejecutándose. A su vez, mediante el uso de triggers, el pipeline se ejecuta automáticamente después de que finalize exitósamente el build pipeline asociado (también construido en YAML).
+
+A continuación, se presenta el código creado para este paso.
+
+```yaml
+trigger:
+- none
+
+# Sets the build pipeline from which it gets the artifact to deploy
+resources:
+  pipelines:
+    - pipeline: 'BuildPipeline'
+      project: 'Sample02'
+      source: 'Sample02'
+      trigger:
+        branches:
+        - main
+
+stages:
+  - stage: DeployToQA
+    displayName: 'Deploy site to QA'
+    pool:
+      vmImage: 'windows-latest'
+      
+    jobs:
+    - job: DeployQA
+      displayName: 'Deploy to QA'
+      steps:
+      - download: 'BuildPipeline'
+        displayName: 'Download Build Artifacts'
+        artifact: 'drop'
+
+      - task: AzureWebApp@1
+        inputs:
+          azureSubscription: 'Azure subscription 1 (a66d8dc3-948a-4b74-94d7-4e0e2aef3a70)'
+          appType: 'webApp'
+          appName: 'Chattas-WebApp01'
+          package: '$(Pipeline.Workspace)/BuildPipeline/**/*.zip'
+  
+  - stage: ManualApproval
+    displayName: 'Wait for Manual Approval'
+    dependsOn: DeployToQA
+    condition: succeeded()
+    
+    jobs:
+    - job: waitForValidation
+      displayName: Wait for external validation
+      pool: server
+      timeoutInMinutes: 10080 # 7 days
+      steps:
+      - task: ManualValidation@0
+        timeoutInMinutes: 10080 # 7 days
+        inputs:
+          notifyUsers: |
+            2112737@ucc.edu.ar
+          instructions: 'Validate build and approve release to PROD'
+          onTimeout: 'reject'
+
+  - stage: DeployToProd
+    displayName: 'Deploy site to PROD'
+    dependsOn: ManualApproval
+    condition: succeeded()
+    pool:
+      vmImage: 'windows-latest'
+
+    jobs:
+      - job: DeployPROD
+        displayName: 'Deploy to PROD'
+        steps:
+          - download: 'BuildPipeline'
+            displayName: 'Download Build Artifacts'
+            artifact: 'drop'
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: 'Azure subscription 1 (a66d8dc3-948a-4b74-94d7-4e0e2aef3a70)'
+              appType: 'webApp'
+              appName: 'Chattas-WebApp01-PROD'
+              package: '$(Pipeline.Workspace)/BuildPipeline/**/*.zip'
+```
+
+A continuación, se muestra el paso a paso de CI y CD utilizando estos pipelines.
+
+### Cambio en el Código
+Se introduce un cambio en el código que modifica la cantidad de pronósticos que envía la API a 2.
+
+![Imagen Paso 14a](Paso%2014a.jpg)
+
+### Continuous Integration
+El build pipeline "Sample 02" se ejecuta automáticamente luego del commit realizado y crea los artifacts con la nueva versión de la aplicación.
+
+![Imagen Paso 14b](Paso%2014b.jpg)
+
+### Continuous Deployment
+Al finalizar exitósamente la ejecución del build pipeline, comienza la ejecución del release pipeline mostrado anteriormente. Este se detiene en la segunda etapa, aguardando la validación manual antes de hacer el deploy al ambiente de producción.
+
+![Imagen Paso 14c](Paso%2014c.jpg)
+
+Como se muestra a continuación, el ambiente de QA ya dispone de la nueva versión, con sólo 2 pronósticos.
+
+![Imagen Paso 14d](Paso%2014d.jpg)
+
+Mientras que producción continúa con la versión anterior (con 15 pronósticos).
+
+![Imagen Paso 14e](Paso%2014e.jpg)
+
+#### Aprobación Manual
+
+Se aprueba manualmente el deploy.
+
+![Imagen Paso 14f](Paso%2014f.jpg)
+
+El release pipeline finaliza su ejecución con éxito.
+
+![Imagen Paso 14g](Paso%2014g.jpg)
+
+Y en el ambiente de producción ya se dispone de la nueva versión del producto.
+
+![Imagen Paso 14h](Paso%2014h.jpg)
+
+#### Rechazo Manual
+En caso de rechazar el deploy a producción, el pipeline finaliza de manera errónea, habiendo realizado el deploy en el ambiente de QA, pero no así en PROD.
+
+![Imagen Paso 14i](Paso%2014i.jpg)
