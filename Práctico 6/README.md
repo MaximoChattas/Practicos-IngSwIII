@@ -118,3 +118,59 @@ Se muestra que, por más que la aplicación no tenga acceso a la base de datos, 
 Finalmente, se restablece la cadena de conexión a la correcta, verificando que la aplicación funciona correctamente de nuevo.
 
 ![Imagen Paso 3k](Paso%203k.jpg)
+
+## Paso 4
+Se edita el contenido del archivo "app.component.spec.ts" por el código provisto.
+
+![Imagen Paso 4a](Paso%204a.jpg)
+
+Se crea el archivo "employee.service.spec.ts" con el código provisto.
+
+![Imagen Paso 4b](Paso%204b.jpg)
+
+Se edita el contenido del archivo "employee.component.spec.ts" por el código provisto.
+
+![Imagen Paso 4c](Paso%204c.jpg)
+
+Se edita el contenido del archivo "addemployee.component.spec.ts" por el código provisto.
+
+![Imagen Paso 4d](Paso%204d.jpg)
+
+Mediante el comando
+```bash
+ng test
+```
+se ejecutan las pruebas anteriormente creadas.
+
+![Imagen Paso 4e](Paso%204e.jpg)
+
+Se muestra que las 4 pruebas finalizaron de manera exitosa.
+
+![Imagen Paso 4f](Paso%204f.jpg)
+
+Se muestra que la API no se encuentra corriendo al momento de ejecutar las pruebas, demostrando que las mismas son realmente pruebas unitarias que no requieren dependencias externas para funcionar.
+
+![Imagen Paso 4g](Paso%204g.jpg)
+
+## Paso 5
+Se instala la dependencia karma-junit-reporter mediante el comando:
+```bash
+npm install karma-junit-reporter --save-dev
+```
+
+![Imagen Paso 5a](Paso%205a.jpg)
+
+Se crea el archivo "karma.conf.js"
+
+![Imagen Paso 5b](Paso%205b.jpg)
+
+Se ejecutan las pruebas nuevamente mediante el comando:
+```bash
+ng test --karma-config=karma.conf.js --watch=false --browsers ChromeHeadless
+```
+
+![Imagen Paso 5c](Paso%205c.jpg)
+
+Se muestra que esto resultó en la creación de un archivo "test-results.xml" dentro de un directorio "test-results" en el directorio raíz del proyecto de Angular.
+
+![Imagen Paso 5d](Paso%205d.jpg)
