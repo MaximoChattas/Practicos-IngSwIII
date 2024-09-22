@@ -506,3 +506,170 @@ public async Task Update_UpdatesEmployee_ReturnsBadRequest_NameLengthOver100()
 Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el proyecto) y se observa que todas ellas finalizan con resultado exitoso.
 
 ![Imagen Paso 6g](Paso%206g.jpg)
+
+## Paso 7
+### Instalación y configuración de dependencias
+Para mostrar las validaciones mediante Toast, es necesario instalar y modificar archivos y dependencias. El proceso realizado a continuación fue tomado de la siguiente fuente:
+
+[https://www.npmjs.com/package/ngx-toastr](https://www.npmjs.com/package/ngx-toastr)
+
+En primer lugar, se instalan las dependencias mediante los comandos:
+```bash
+npm install ngx-toastr --save
+npm install @angular/animations --save
+```
+
+Luego, se agrega el archivo .css correspondiente a los toast dentro del archivo "angular.json".
+
+![Imagen Paso 7a](Paso%207a.jpg)
+
+Se importan las dependencias instaladas en el archivo "app.config.ts".
+
+![Imagen Paso 7b](Paso%207b.jpg)
+
+A su vez, se importó el archivo css de Toastr en el archivo "styles.css" del proyecto.
+
+![Imagen Paso 7c](Paso%207c.jpg)
+
+## Validaciones en el código
+Dentro del proyecto de Angular, se implementaron las mismas validaciones que en la API, permitiendo que este proceso sea más eficiente debido a que se reduce la cantidad de llamadas a la misma (en caso de error, la información nunca llega a la API). Para esto, se definió una función que determina si el nombre del empleado es válido o no, de acuerdo con las políticas definidas y muestran el error utilizando Toastr.
+
+```typescript
+// Validaciones a realizar sobre el nombre del empleado
+private isValidEmployeeName(name: string): boolean {
+
+    // 1: Chequeo que el nombre no contenga números
+    if (/\d/.test(name)) {
+      this.toastr.error('El nombre del empleado no debe contener números.', 'Error de validación');
+      return false;
+    }
+
+    // 4: Se verifica que todas las partes del nombre tengan más de 1 caracter
+    const nameParts = name.split(' ');
+    for (let part of nameParts) {
+      if (part.length <= 1) {
+        this.toastr.error('Los nombres y apellidos del empleado debe tener una longitud mayor a 1 letra.', 'Error de validación');
+        return false;
+      }
+    }
+
+    // 5: Se verifica máxima longitud de nombre 100 caracteres
+    if (name.length > 100) {
+      this.toastr.error('El nombre del empleado no puede contener más de 100 letras.', 'Error de validación');
+      return false;
+    }
+
+    return true;
+  }
+```
+
+Además, se creó una función que realiza el formateo del nombre del modo definido: apellido en mayúsculas en su totalidad y nombres con la primera letra mayúscula, y el resto en minúscula.
+
+```typescript
+// 2: Formato de nombre
+private formatName(name: string): string {
+const nameParts = name.split(' ');
+const formattedParts = nameParts.map((part, index) => {
+    return index === nameParts.length - 1 // Apellido (ultima palabra)
+    ? part.toUpperCase()
+    : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(); // Nombres
+});
+return formattedParts.join(' ');
+}
+```
+
+Luego, estas funciones son utilizadas durante la creación y actualización de los empleados, que a su vez son capaces de recibir y mostrar errores de la API utilizando el mismo formato.
+
+#### Creación de empleado
+
+```typescript
+createEmployee(employee: Employee) {
+
+    // Verificación de validez
+    if (this.isValidEmployeeName(employee.name)) {
+
+      // Formateo de nombre
+      employee.name = this.formatName(employee.name);
+
+      const httpOptions = {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      };
+      return this.http.post<Employee>(
+        this.apiUrlEmployee + '/create',
+        employee,
+        httpOptions
+      ).pipe(
+        // Error de API
+        catchError((error: HttpErrorResponse) => {
+          const errorMessage = error.error;
+          this.toastr.error(errorMessage, 'Error al crear empleado');
+          return throwError(() => error);
+        })
+      );
+    } else {
+      return throwError(() => new Error('Employee name validation failed.'));
+    }
+  }
+```
+
+#### Actualización de empleado
+
+```typescript
+updateEmployee(employee: Employee): Observable<Employee> {
+
+    // Verificación de validez
+    if (this.isValidEmployeeName(employee.name)) {
+
+      // Formateo de nombre
+      employee.name = this.formatName(employee.name);
+  
+      const httpOptions = {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      };
+  
+      return this.http.put<Employee>(
+        `${this.apiUrlEmployee}/update`,
+        employee,
+        httpOptions
+      ).pipe(
+        // Error de API
+        catchError((error: HttpErrorResponse) => {
+          const errorMessage = error.error;
+          this.toastr.error(errorMessage, 'Error al actualizar empleado');
+          return throwError(() => error);
+        })
+      );
+    } else {
+      return throwError(() => new Error('Error de validación.'));
+    }
+  }
+```
+
+Nota: la validación
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+no fue tenida en cuenta para el frontend, debido a que requiere obtener un listado completo de los empleados actualmente registrados (utilizando la conexión a la API y la base de datos). Por este motivo, se implementó la lectura de errores provenientes de la API en las funciones de creación y actualización de empleados.
+
+### Pruebas manuales
+A continuación se prueban de forma manual algunas de las modificaciones implementadas para visualizar su correcto funcionamiento.
+
+Se prueba que el nombre del empleado no contenga números.
+
+![Imagen Paso 7d](Paso%207d.jpg)
+
+Se prueba que cada parte del nombre deba contener más de 1 caracter.
+
+![Imagen Paso 7e](Paso%207e.jpg)
+
+Se actualiza uno de los empleados.
+
+![Imagen Paso 7f](Paso%207f.jpg)
+
+Y se verifica que su nombre haya sido formateado correctamente.
+
+![Imagen Paso 7g](Paso%207g.jpg)
+
+Se intenta crear un nuevo empleado con un nombre existente en el sistema.
+
+![Imagen Paso 7h](Paso%207h.jpg)
