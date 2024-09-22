@@ -174,3 +174,335 @@ ng test --karma-config=karma.conf.js --watch=false --browsers ChromeHeadless
 Se muestra que esto resultó en la creación de un archivo "test-results.xml" dentro de un directorio "test-results" en el directorio raíz del proyecto de Angular.
 
 ![Imagen Paso 5d](Paso%205d.jpg)
+
+## Paso 6
+### Validaciones en el código
+Dentro del proyecto, se realizan las siguientes modificaciones:
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+En primer lugar, se implementan las funciones que realizan estas verificaciones. Las mismas reciben como parámetro el nombre del empleado a verificar, y retornan un booleano, excepto por la función de formateo de nombre que devuelve un string con el nombre escrito correctamente. A continuación se adjunta el código de estas funciones.
+
+```c#
+// 1: Chequeo de ausencia de números
+private bool CheckForNumbersInName(string name)
+{
+    return name.Any(char.IsDigit);
+}
+
+// 2: Formatear el nombre y apellido
+private string FormatName(string name)
+{
+    var parts = name.Split(' ');
+    for (int i = 0; i < parts.Length; i++)
+    {
+        if (i == parts.Length - 1)
+        {
+            // El apellido en mayúsculas (última palabra)
+            parts[i] = parts[i].ToUpper();
+        }
+        else
+        {
+            // Nombres con la primera letra mayúscula
+            parts[i] = char.ToUpper(parts[i][0]) + parts[i].Substring(1).ToLower();
+        }
+    }
+    return string.Join(" ", parts);
+}
+
+// 3: Chequeo de nombre duplicado
+private bool IsNameDuplicate(string name)
+{
+    // Se realiza la comparación en minúsculas para garantizar la ausencia de duplicados
+    return _context.Employees.Any(e => e.Name.ToLower() == name.ToLower());
+}
+
+// 4: Chequeo que todas las partes del nombre tengan más de 1 caracter
+private bool AreNamePartsValid(string name)
+{
+    var parts = name.Split(' ');
+    return parts.All(p => p.Length > 1);
+}
+
+// 5: Chequeo máxima longitud 100 caracteres
+private bool IsNameLengthValid(string name)
+{
+    return name.Length <= 100;
+}
+```
+
+Estas funciones se utilizan para realizar las verificaciones durante la creación y actualización de los empleados. Si alguna de las verificaciones falla, se retorna un BadRequest (Error 400) con una descripción de la verificación fallida.
+
+Se muestra cómo se realizan las verificaciones durante la creación del empleado.
+
+![Imagen Paso 6a](Paso%206a.jpg)
+
+Se muestra cómo se realizan las verificaciones durante la actualización del empleado.
+
+![Imagen Paso 6b](Paso%206b.jpg)
+
+### Pruebas manuales
+
+A continuación se prueban de forma manual algunas de las modificaciones implementadas para visualizar su correcto funcionamiento.
+
+Se prueba que el nombre del empleado no contenga números.
+
+![Imagen Paso 6c](Paso%206c.jpg)
+
+Se prueba que cada parte del nombre deba contener más de 1 caracter.
+
+![Imagen Paso 6d](Paso%206d.jpg)
+
+Se actualiza el empleado con ID 1.
+
+![Imagen Paso 6e](Paso%206e.jpg)
+
+Y se verifica que su nombre haya sido formateado adecuadamente.
+
+![Imagen Paso 6f](Paso%206f.jpg)
+
+### Escritura de casos de prueba
+A continuación, se escriben casos de prueba que verifican el correcto funcionamiento de las validaciones previamente definidas.
+
+#### Creación de empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```c#
+[Fact]
+public async Task Create_ReturnsBadRequest_NameContainsNumbers()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var newEmployee = new Employee { Id = 4, Name = "New Employee 1" };
+
+    // Act
+    var result = await controller.Create(newEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```c#
+[Fact]
+public async Task Create_AddsEmployee()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var newEmployee = new Employee { Id = 3, Name = "New Employee" };
+
+    // Act
+    await controller.Create(newEmployee);
+
+    // Assert
+    var employee = await context.Employees.FindAsync(3);
+    Assert.NotNull(employee);
+    Assert.Equal("New EMPLOYEE", employee.Name);
+}
+```
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+```c#
+[Fact]
+public async Task Create_ReturnsBadRequest_NameIsDuplicate()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    context.Employees.Add(new Employee { Id = 1, Name = "John Doe"} );
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var duplicateEmployee = new Employee { Id = 1, Name = "john doe" };
+
+    // Act
+    var result = await controller.Create(duplicateEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```c#
+[Fact]
+public async Task Create_ReturnsBadRequest_NamePartLength1()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var employee = new Employee { Id = 1, Name = "John D" };
+
+    // Act
+    var result = await controller.Create(employee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```c#
+[Fact]
+public async Task Create_ReturnsBadRequest_NameLengthOver100()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var longName = new string('A', 120);
+
+    var employee = new Employee { Id = 1, Name = longName };
+
+    // Act
+    var result = await controller.Create(employee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+#### Actualización de empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```c#
+[Fact]
+public async Task Update_UpdatesEmployee_ReturnsBadRequest_NameContainsNumbers()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var existingEmployee = new Employee { Id = 1, Name = "Old Name" };
+    context.Employees.Add(existingEmployee);
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var updatedEmployee = new Employee { Id = 1, Name = "Updated Name1" };
+
+    // Act
+    var result = await controller.Update(updatedEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```c#
+[Fact]
+public async Task Update_UpdatesEmployee()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var existingEmployee = new Employee { Id = 1, Name = "Old Name" };
+    context.Employees.Add(existingEmployee);
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var updatedEmployee = new Employee { Id = 1, Name = "Updated Name" };
+
+    // Act
+    await controller.Update(updatedEmployee);
+
+    // Assert
+    var employee = await context.Employees.FindAsync(1);
+    Assert.NotNull(employee);
+    Assert.Equal("Updated NAME", employee.Name);
+}
+```
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+```c#
+[Fact]
+public async Task Update_UpdatesEmployee_ReturnsBadRequest_NameIsDuplicate()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    context.Employees.AddRange(
+        new Employee { Id = 1, Name = "John Doe" },
+        new Employee { Id = 2, Name = "Jane Doe" }
+    );
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var updatedEmployee = new Employee { Id = 1, Name = "jane doe" };
+
+    // Act
+    var result = await controller.Update(updatedEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```c#
+[Fact]
+public async Task Update_UpdatesEmployee_ReturnsBadRequest_NamePartLength1()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var existingEmployee = new Employee { Id = 1, Name = "Old Name" };
+    context.Employees.Add(existingEmployee);
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var updatedEmployee = new Employee { Id = 1, Name = "New n name" };
+
+    // Act
+    var result = await controller.Update(updatedEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```c#
+[Fact]
+public async Task Update_UpdatesEmployee_ReturnsBadRequest_NameLengthOver100()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var existingEmployee = new Employee { Id = 1, Name = "Old Name" };
+    context.Employees.Add(existingEmployee);
+    context.SaveChanges();
+
+    var controller = new EmployeeController(context);
+
+    var longName = new string('A', 120);
+
+    var updatedEmployee = new Employee { Id = 1, Name = longName };
+
+    // Act
+    var result = await controller.Update(updatedEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
+### Ejecución de pruebas
+Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el proyecto) y se observa que todas ellas finalizan con resultado exitoso.
+
+![Imagen Paso 6g](Paso%206g.jpg)
