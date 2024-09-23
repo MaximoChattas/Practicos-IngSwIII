@@ -673,3 +673,229 @@ Y se verifica que su nombre haya sido formateado correctamente.
 Se intenta crear un nuevo empleado con un nombre existente en el sistema.
 
 ![Imagen Paso 7h](Paso%207h.jpg)
+
+### Escritura de casos de prueba
+A continuación, se escriben casos de prueba que verifican el correcto funcionamiento de las validaciones previamente definidas.
+
+#### Creación de empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```typescript
+it('should fail to create employee when name contains numbers', () => {
+    const invalidEmployee = new Employee (1, 'John 1', '');
+    service.createEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no debe contener números.', 'Error de validación');
+
+  });
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```typescript
+it('should format employee name when creating an employee', () => {
+    const employee = new Employee(1, 'john doe', '');
+  
+    const formatNameSpy = spyOn<any>(service, 'formatName').and.callThrough(); 
+  
+    service.createEmployee(employee).subscribe((response) => {
+      expect(employee.name).toEqual('John DOE');
+    });
+  
+    const req = httpMock.expectOne(`${service.apiUrlEmployee}/create`);
+    expect(req.request.method).toBe('POST');
+  
+    // Simulate a successful response from the backend
+    req.flush(employee);
+    
+    expect(formatNameSpy).toHaveBeenCalledWith('john doe');
+  });
+```
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+Nota: en este caso se prueba que Angular reciba y muestre adecuadamente los errores ocurridos en la API.
+
+```typescript
+it('should handle API error on createEmployee', () => {
+    const employee = new Employee(1, 'John Doe', '');
+  
+    // Simulate an error message from the backend
+    const errorMessage = 'El empleado ya se encuentra registrado';
+    const errorResponse = { status: 400, statusText: 'Bad Request' };
+  
+    // Call the service method
+    service.createEmployee(employee).subscribe({
+      next: () => fail('Expected an error, but got success response'),
+      error: (error) => {
+        expect(error.status).toBe(400);
+        expect(error.statusText).toBe('Bad Request');
+      }
+    });
+  
+    // Expect an API call
+    const req = httpMock.expectOne(`${service.apiUrlEmployee}/create`);
+    expect(req.request.method).toBe('POST');
+  
+    // Simulate an API error response (passing the error as a string directly)
+    req.flush(errorMessage, errorResponse);
+  
+    // Verify that the ToastrService error was called
+    expect(toastr.error).toHaveBeenCalledWith(errorMessage, 'Error al crear empleado');
+  });
+```
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```typescript
+it('should fail to create employee when a part of name is of length 1', () => {
+    const invalidEmployee = new Employee (1, 'J D', '');
+    service.createEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('Los nombres y apellidos del empleado debe tener una longitud mayor a 1 letra.', 'Error de validación');
+
+  });
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```typescript
+it('should fail to create employee when name is longer than 100', () => {
+    const invalidEmployee = new Employee (1, 'A'.repeat(120), '');
+    service.createEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no puede contener más de 100 letras.', 'Error de validación');
+
+  });
+```
+
+#### Actualización de empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```typescript
+it('should fail to update employee when name contains numbers', () => {
+    const invalidEmployee = new Employee (1, 'John 1', '');
+    service.updateEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no debe contener números.', 'Error de validación');
+
+  });
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```typescript
+it('should format employee name when updating an employee', () => {
+    const employee = new Employee(1, 'john doe', '');
+  
+    const formatNameSpy = spyOn<any>(service, 'formatName').and.callThrough(); 
+  
+    service.updateEmployee(employee).subscribe((response) => {
+      expect(employee.name).toEqual('John DOE');
+    });
+  
+    const req = httpMock.expectOne(`${service.apiUrlEmployee}/update`);
+    expect(req.request.method).toBe('PUT');
+  
+    // Simulate a successful response from the backend
+    req.flush(employee);
+    
+    expect(formatNameSpy).toHaveBeenCalledWith('john doe');
+  });
+```
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+Nota: en este caso se prueba que Angular reciba y muestre adecuadamente los errores ocurridos en la API.
+
+```typescript
+it('should handle API error on updateEmployee', () => {
+    const employee = new Employee(1, 'John Doe', '');
+  
+    // Simulate an error message from the backend
+    const errorMessage = 'El empleado ya se encuentra registrado';
+    const errorResponse = { status: 400, statusText: 'Bad Request' };
+  
+    // Call the service method
+    service.updateEmployee(employee).subscribe({
+      next: () => fail('Expected an error, but got success response'),
+      error: (error) => {
+        expect(error.status).toBe(400);
+        expect(error.statusText).toBe('Bad Request');
+      }
+    });
+  
+    // Expect an API call
+    const req = httpMock.expectOne(`${service.apiUrlEmployee}/update`);
+    expect(req.request.method).toBe('PUT');
+  
+    // Simulate an API error response (passing the error as a string directly)
+    req.flush(errorMessage, errorResponse);
+  
+    // Verify that the ToastrService error was called
+    expect(toastr.error).toHaveBeenCalledWith(errorMessage, 'Error al actualizar empleado');
+  });
+```
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```typescript
+it('should fail to update employee when a part of name is of length 1', () => {
+    const invalidEmployee = new Employee (1, 'J D', '');
+    service.updateEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('Los nombres y apellidos del empleado debe tener una longitud mayor a 1 letra.', 'Error de validación');
+
+  });
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```typescript
+it('should fail to update employee when name is longer than 100', () => {
+    const invalidEmployee = new Employee (1, 'A'.repeat(120), '');
+    service.updateEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no puede contener más de 100 letras.', 'Error de validación');
+
+  });
+```
+
+### Ejecución de pruebas
+Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el proyecto) y se observa que todas ellas finalizan con resultado exitoso.
+
+![Imagen Paso 7i](Paso%207i.jpg)
+
+## Link a proyecto
+Se adjunta un enlace al proyecto en GitHub.
+[https://github.com/MaximoChattas/Angular_WebAPINetCore8_CRUD_Sample.git](https://github.com/MaximoChattas/Angular_WebAPINetCore8_CRUD_Sample.git)
