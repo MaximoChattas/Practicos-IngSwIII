@@ -183,6 +183,7 @@ Dentro del proyecto, se realizan las siguientes modificaciones:
 3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
 4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
 5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
 
 En primer lugar, se implementan las funciones que realizan estas verificaciones. Las mismas reciben como parámetro el nombre del empleado a verificar, y retornan un booleano, excepto por la función de formateo de nombre que devuelve un string con el nombre escrito correctamente. A continuación se adjunta el código de estas funciones.
 
@@ -231,6 +232,27 @@ private bool AreNamePartsValid(string name)
 private bool IsNameLengthValid(string name)
 {
     return name.Length <= 100;
+}
+
+// 6: Chequeo de repetición excesiva de caracteres
+private bool NameHasExcessiveRepeatedCharacters(string name)
+{
+    int counter = 1;
+    for (int i = 1; i < name.Length; i++)
+    {
+        if (name[i] == name[i-1])
+        {
+            counter++;
+            if (counter > 2)
+                return true;
+        }
+        else
+        {
+            counter = 1;
+        }
+    }
+
+    return false;
 }
 ```
 
@@ -375,6 +397,26 @@ public async Task Create_ReturnsBadRequest_NameLengthOver100()
 }
 ```
 
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```c#
+[Fact]
+public async Task Create_ReturnsBadRequest_NameContainsRepeatedCharacters()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var newEmployee = new Employee { Id = 4, Name = "New Employeeeee" };
+
+    // Act
+    var result = await controller.Create(newEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
 #### Actualización de empleado
 1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
 
@@ -502,6 +544,26 @@ public async Task Update_UpdatesEmployee_ReturnsBadRequest_NameLengthOver100()
 }
 ```
 
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```c#
+[Fact]
+public async Task Updates_ReturnsBadRequest_NameContainsRepeatedCharacters()
+{
+    // Arrange
+    var context = GetInMemoryDbContext();
+    var controller = new EmployeeController(context);
+
+    var newEmployee = new Employee { Id = 4, Name = "New Employeeeee" };
+
+    // Act
+    var result = await controller.Update(newEmployee);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+```
+
 ### Ejecución de pruebas
 Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el proyecto) y se observa que todas ellas finalizan con resultado exitoso.
 
@@ -559,6 +621,12 @@ private isValidEmployeeName(name: string): boolean {
       return false;
     }
 
+     // 6: Se verifica la ausencia de caracteres repetidos excesivamente
+    if (this.hasExcessiveRepeatedCharacters(name)) {
+      this.toastr.error('El nombre del empleado no debe contener caracteres repetidos de manera excesiva.', 'Error de validación');
+      return false;
+    }
+
     return true;
   }
 ```
@@ -575,6 +643,28 @@ const formattedParts = nameParts.map((part, index) => {
     : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(); // Nombres
 });
 return formattedParts.join(' ');
+}
+```
+
+Y una función que verifica que el nombre no contenga un mismo caracter repetido más de 2 veces (utilizada en isValidEmployeeName).
+
+```typescript
+// 6: Chequeo de repetición excesiva de caracteres
+private hasExcessiveRepeatedCharacters(name: string): boolean {
+  let repetitionCount = 1;
+
+  for (let i = 1; i < name.length; i++) {
+    if (name[i] === name[i - 1]) {
+      repetitionCount++;
+      if (repetitionCount > 2) {
+        return true;
+      }
+    } else {
+      repetitionCount = 1;
+    }
+  }
+
+  return false;
 }
 ```
 
@@ -649,7 +739,7 @@ Nota: la validación
 
 3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
 
-no fue tenida en cuenta para el frontend, debido a que requiere obtener un listado completo de los empleados actualmente registrados (utilizando la conexión a la API y la base de datos). Por este motivo, se implementó la lectura de errores provenientes de la API en las funciones de creación y actualización de empleados.
+no fue tenida en cuenta para el frontend, debido a que requiere obtener un listado completo de los empleados actualmente registrados (utilizando la conexión a la API y la base de datos). Por este motivo, se implementó la lectura de errores provenientes de la API en las funciones de creación y actualización de empleados, con su correspondiente caso de prueba.
 
 ### Pruebas manuales
 A continuación se prueban de forma manual algunas de las modificaciones implementadas para visualizar su correcto funcionamiento.
@@ -784,6 +874,23 @@ it('should fail to create employee when name is longer than 100', () => {
   });
 ```
 
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```typescript
+it('should fail to create employee when name contains repeated characters', () => {
+    const invalidEmployee = new Employee (1, 'Joooohn', '');
+    service.createEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no debe contener caracteres repetidos de manera excesiva.', 'Error de validación');
+
+  });
+```
+
 #### Actualización de empleado
 1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
 
@@ -891,6 +998,23 @@ it('should fail to update employee when name is longer than 100', () => {
   });
 ```
 
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```typescript
+it('should fail to update employee when name contains repeated characters', () => {
+    const invalidEmployee = new Employee (1, 'Joooohn', '');
+    service.updateEmployee(invalidEmployee).subscribe({
+      next: () => fail('Expected validation error'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Employee name validation failed.');
+      }
+    });
+
+    expect(toastr.error).toHaveBeenCalledWith('El nombre del empleado no debe contener caracteres repetidos de manera excesiva.', 'Error de validación');
+
+  });
+```
+
 ### Ejecución de pruebas
 Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el proyecto) y se observa que todas ellas finalizan con resultado exitoso.
 
@@ -899,3 +1023,5 @@ Se ejecutan las pruebas escritas (junto con las anteriormente definidas en el pr
 ## Link a proyecto
 Se adjunta un enlace al proyecto en GitHub.
 [https://github.com/MaximoChattas/Angular_WebAPINetCore8_CRUD_Sample.git](https://github.com/MaximoChattas/Angular_WebAPINetCore8_CRUD_Sample.git)
+
+Nota: se agrega una validación adicional por no poder probar adecuadamente el chequeo de empleados repetidos íntegramente desde el frontend.
