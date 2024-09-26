@@ -23,7 +23,7 @@ Se crea un nuevo proyecto en Azure DevOps (Angular-Dotnet Project), en el cual f
 
 ![Imagen Paso 1d](Paso%201d.jpg)
 
-Dentro de este proyecto, se creó un build pipeline para la API de .NET y la aplicación de Angular que incluye la ejecución y publicación de los resultados de los casos de prueba. El pipeline cuenta con 2 etapas, una para cada parte del proyecto. Se muestra a continuación el código creado.
+Dentro de este proyecto, se creó un build pipeline para la API de .NET y la aplicación de Angular que incluye la ejecución y publicación de los resultados de los casos de prueba. El pipeline cuenta con 1 etapa, con 2 jobs. Se muestra a continuación el código creado.
 
 ```yaml
 trigger:
@@ -39,15 +39,17 @@ variables:
   frontPath: './EmployeeCrudAngular'
 
 stages:
-# Stage 1: DOTNET API
-- stage: DOTNET_API
-  displayName: "DOTNET API"
+- stage: BuildAndTest
+  displayName: "Build and Test API and Front"
   jobs:
-  - job: BuildAndTest
+  - job: BuildDotnet
     displayName: "Build and Test API"
     pool:
       vmImage: 'windows-latest'
     steps:
+    - checkout: self
+      fetchDepth: 0
+
     - task: DotNetCoreCLI@2
       displayName: 'Restaurar paquetes NuGet'
       inputs:
@@ -66,7 +68,7 @@ stages:
       inputs:
         summaryFileLocation: '$(Agent.TempDirectory)/**/*.cobertura.xml'
         failIfCoverageEmpty: false
-
+      
     - task: DotNetCoreCLI@2
       displayName: 'Compilar la API'
       inputs:
@@ -89,12 +91,8 @@ stages:
         ArtifactName: 'api-drop'
         publishLocation: 'Container'
 
-# Stage 2: Angular App
-- stage: Angular_App
-  displayName: "Angular App"
-  jobs:
   - job: BuildAngular
-    displayName: "Build Angular Project"
+    displayName: "Build and Test Angular"
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -152,3 +150,46 @@ Además, se muestra el reporte de cobertura de código.
 ![Imagen Paso 1g](Paso%201g.jpg)
 
 En los resultados, se obtuvo que las pruebas cubren un 72,61% del total de las líneas de código del proyecto. Esto incluye la API de .NET y la aplicación de Angular.
+
+## Paso 2
+Siguiendo el instructivo, se integra SonarCloud a la organización de Azure DevOps, instalando y configurando la extensión correspondiente.
+
+![Imagen Paso 2a](Paso%202a.jpg)
+
+Luego, se agrega dentro del Pipeline del paso anterior las siguientes tareas.
+
+Antes del build de back:
+```yaml
+- task: SonarCloudPrepare@2
+      inputs:
+        SonarCloud: 'SonarCloud'
+        organization: 'maxichattas'
+        scannerMode: 'MSBuild'
+        projectKey: 'maxichattas_Angular-Dotnet-Project'
+        projectName: 'Angular-Dotnet Project'
+```
+
+Después del build de back:
+```yaml
+    - task: SonarCloudAnalyze@2
+      inputs:
+        jdkversion: 'JAVA_HOME_17_X64'
+    
+    - task: SonarCloudPublish@2
+      inputs:
+        pollingTimeoutSec: '300'
+```
+
+Una vez ejecutado el pipeline con las nuevas tareas, se tiene en el resultado un link al análisis realizado por SonarCloud.
+
+![Imagen Paso 2b](Paso%202b.jpg)
+
+Ingresando al link, podemos acceder al detalle del análisis.
+
+![Imagen Paso 2c](Paso%202c.jpg)
+
+Uno de los apartados más importantes del análisis de SonarCloud se encuentra en el apartado de "Security Hotspots", donde se pueden ver las vulnerabilidades de seguridad encontradas en el código. En este caso, se encontraron 2 de ellas, siendo que la más importante se refiere a la cadena de conexión con la base de datos, que tiene la contraseña escrita en duro (hard-code). La segunda vulnerabilidad encontrada se refiere a la política de CORS (Cross Origin Resource Sharing), que está configurada en su modo más permisivo (Allow Any).
+
+![Imagen Paso 2d](Paso%202d.jpg)
+
+Dentro del apartado "Measures" se tienen algunas métricas del código, como su complejidad ciclomática, cobertura de los casos de prueba, confiabilidad, mantenibilidad y demás cuestiones referidas a la calidad del mismo. A su vez, en "Issues", la aplicación ofrece algunas recomendaciones respecto a buenas prácticas para mejorar la calidad del código.
