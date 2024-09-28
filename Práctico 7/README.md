@@ -193,3 +193,108 @@ Uno de los apartados más importantes del análisis de SonarCloud se encuentra e
 ![Imagen Paso 2d](Paso%202d.jpg)
 
 Dentro del apartado "Measures" se tienen algunas métricas del código, como su complejidad ciclomática, cobertura de los casos de prueba, confiabilidad, mantenibilidad y demás cuestiones referidas a la calidad del mismo. A su vez, en "Issues", la aplicación ofrece algunas recomendaciones respecto a buenas prácticas para mejorar la calidad del código.
+
+## Paso 3
+En primer lugar, se instala la dependencia de Cypress dentro del directorio raíz del proyecto de Angular mediante el comando:
+```bash
+npm install cypress --save-dev
+```
+
+![Imagen Paso 3a](Paso%203a.jpg)
+
+Luego, se abre Cypress mediante el comando:
+```bash
+npx cypress open
+```
+
+![Imagen Paso 3b](Paso%203b.jpg)
+
+Esto inicia Cypress, en donde se configuran los tests de tipo E2E (end to end), como se muestra a continuación.
+
+![Imagen Paso 3c](Paso%203c.jpg)
+
+Se ejecuta una de las pruebas genéricas generadas por Cypress, para verificar su correcto funcionamiento.
+
+![Imagen Paso 3d](Paso%203d.jpg)
+
+Dentro de la carpeta cypress/e2e creamos el primer caso de prueba que verifica que el título del sitio sea "EmployeeCrudAngular". La URL que debe visitar es "http://localhost:4200" debido a que el proyecto corre de forma local en mi dispositivo.
+
+![Imagen Paso 3e](Paso%203e.jpg)
+
+Se observa que la prueba finaliza con resultado exitoso.
+
+![Imagen Paso 3f](Paso%203f.jpg)
+
+A su vez, es posible ejecutar las pruebas sin la interfaz gráfica, es decir, en modo "headless". Esto se hace mediante el comando:
+```bash
+npx cypress run
+```
+
+Se observa que la prueba escrita anteriormente se ejecuta con éxito (junto con las demás pruebas genéricas escritas por Cypress).
+
+![Imagen Paso 3g](Paso%203g.jpg)
+
+Para simular un fallo, se modifica el título esperado dentro de la prueba escrita anteriormente. Además, se quitaron las pruebas genéricas para agilizar el proceso y que no interfieran con los resultados.
+
+![Imagen Paso 3h](Paso%203h.jpg)
+
+Esta prueba fallida, creó un screenshot dentro de la carpeta "cypress/screenshots" mostrando la razón por la cual falló.
+
+![Imagen Paso 3i](Paso%203i.jpg)
+
+Luego, se edita el archivo "cypress.config.ts" definiendo las configuraciones del reporte que debe generar, y habilitando experimentalStudio. Esto permitirá generar nuevas pruebas mediante la interacción con la página.
+
+![Imagen Paso 3j](Paso%203j.jpg)
+
+Utilizando esta herramienta, se prueba la creación de un nuevo empleado con mi nombre completo.
+
+![Imagen Paso 3k](Paso%203k.jpg)
+
+El test inicialmente falla debido a la validación de empleado duplicado definida en el práctico anterior (al intentar crear más de una vez un empleado con el mismo nombre). Por este motivo, se agrega dentro del mismo la eliminación del empleado, luego de validar que el mismo se crea correctamente. Luego de realizar algunos ajustes dentro del código generado, se obtiene la siguiente prueba.
+```javascript
+/* ==== Generated with Cypress Studio ==== */
+      cy.get('.btn').click();
+      cy.get('.form-control').clear('N');
+      cy.get('.form-control').type('New employee');
+      cy.get('.btn').click();
+      cy.get('tr:last-child > :nth-child(2)').should('have.text', ' New EMPLOYEE ');
+      cy.get('tr:last-child > :nth-child(5) > a > .fa').click();
+      /* ==== End Cypress Studio ==== */
+```
+
+Se crea un nuevo archivo de prueba llamado "editEmployee_test.cy.js" en el que se prueba la edición de un empleado.
+```javascript
+describe('editEmployeeTest', () => {
+    it('Carga correctamente la página de ejemplo', () => {
+      cy.visit('http://localhost:4200') // Colocar la url local o de Azure de nuestro front
+      /* ==== Generated with Cypress Studio ==== */
+      cy.get(':nth-child(2) > :nth-child(4) > a > .fa').click();
+
+    
+      cy.get('.form-control')
+      .should('be.visible')
+      .should('not.be.disabled')
+
+      cy.wait(500);
+
+      cy.get('.form-control').type('{selectall}{backspace}');
+
+      cy.wait(500);
+
+      cy.get('.form-control').should('have.value', '');
+
+      cy.get('.form-control').type('updated new employee');
+
+      cy.get('.btn').click();
+
+      cy.get('.table > :nth-child(2) > :nth-child(2)').should('have.text', ' Updated New EMPLOYEE ');
+      
+      cy.get(':nth-child(2) > :nth-child(5) > a > .fa').click();
+      /* ==== End Cypress Studio ==== */
+    })
+  })
+```
+
+Se verifica que todas las pruebas escritas anteriormente finalicen con éxito. Para esto, se corre el comando "npx cypress run" en la terminal.
+
+![Imagen Paso 3l](Paso%203l.jpg)
