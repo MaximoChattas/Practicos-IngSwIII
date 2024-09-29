@@ -135,7 +135,7 @@ stages:
         ArtifactName: 'front-drop'
 ```
 
-Se ejecuta el pipeline y ambas etapas finalizan de manera exitosa.
+Se ejecuta el pipeline que finaliza de manera exitosa.
 
 ![Imagen Paso 1e](Paso%201e.jpg)
 
@@ -298,3 +298,93 @@ describe('editEmployeeTest', () => {
 Se verifica que todas las pruebas escritas anteriormente finalicen con éxito. Para esto, se corre el comando "npx cypress run" en la terminal.
 
 ![Imagen Paso 3l](Paso%203l.jpg)
+
+## Paso 4
+
+### Integración de SonarCloud en Angular
+Para integrar la revisión estática de código de SonarCloud para el código del proyecto de Angular, que se encuentra dentro del mismo repositorio que el código de la API de .NET, fue necesario crear un proyecto monorepo dentro de la herramienta de análisis. De este modo, se pueden obtener reportes separados por cada una de las partes del proyecto.
+
+Para esto, se creó un nuevo proyecto dentro del cual será realizado el análisis del código de Angular, y siguiendo el instructivo provisto por SonarCloud, se agregó el siguiente código dentro del build pipeline.
+
+Antes del build de Angular:
+```yaml
+- task: SonarCloudPrepare@2
+      inputs:
+        SonarCloud: 'SonarCloudFront'
+        organization: 'maxichattas'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'maxichattas-Angular_Project'
+        cliProjectName: 'maxichattas-Angular_Project'
+        cliSources: '.'
+```
+
+Luego del build de Angular:
+```yaml
+- task: SonarCloudAnalyze@2
+      inputs:
+        jdkversion: 'JAVA_HOME_17_X64'
+    
+- task: SonarCloudPublish@2
+  inputs:
+    pollingTimeoutSec: '300'
+```
+
+A su vez, se creó el archivo "sonar-project.properties" dentro del directorio raíz del proyecto de Angular con el siguiente contenido:
+```properties
+sonar.projectKey=maxichattas-Angular_Project
+sonar.organization=maxichattas
+
+# This is the name and version displayed in the SonarCloud UI.
+#sonar.projectName=maxichattas-Angular_Project
+#sonar.projectVersion=1.0
+
+
+# Path is relative to the sonar-project.properties file. Replace "\" by "/" on Windows.
+#sonar.sources=.
+
+# Encoding of the source code. Default is default system encoding
+#sonar.sourceEncoding=UTF-8
+```
+
+Una vez implementadas estas modificaciones, se ejecuta el pipeline nuevamente. Dentro de sus resutlados, además de los casos de prueba y cobertura de código, se tiene en el apartado de "Extensions" los reportes generados por SonarCloud para Angular y Dotnet.
+
+![Imagen Paso 4a](Paso%204a.jpg)
+
+Ingresando a los links provistos, se puede ver en detalle los análisis realizados.
+
+#### Proyecto de Angular
+
+![Imagen Paso 4b](Paso%204b.jpg)
+
+Dentro del análisis del código de frontend, no se encontró ninguna vulnerabilidad en términos de seguridad, pero sí algunos inconvenientes (issues). En total fueron 36, y se clasificaron de la siguiente manera:
+- Importancia:
+  - Alta: 0
+  - Media: 22
+  - Baja: 14
+  
+- Atributo de calidad que afecta:
+  - Seguridad: 0
+  - Confiabilidad: 6
+  - Mantenibilidad: 30
+
+Dentro de los issues detallados en el análisis, se encuentran varias recomendaciones, como agregar atributos "alt" a las imágenes, importaciones no utilizadas (como "Params", "withInterceptors" y "LOCALE_ID"), variables que nunca se reasignan por lo que deberían ser marcadas como "readOnly". A su vez, detectó algunas dependencias deprecadas que no deberían ser usadas y otras dependencias que fueron importadas múltiples veces dentro del proyecto. Si bien ninguno de los errores detectados resultan críticos, resolver este tipo de cuestiones permite mejorar la calidad del código aumentando su consistencia y facilitando su posterior mantenimiento.
+
+#### Proyecto de Dotnet
+
+![Imagen Paso 4c](Paso%204c.jpg)
+
+Dentro del análisis del código de backend, se encontraron un total de 16 problemas (issues) que se clasifican de la siguiente manera:
+- Importancia:
+  - Alta: 2
+  - Media: 8
+  - Baja: 6
+
+- Atributo de calidad que afecta:
+  - Seguridad: 0
+  - Confiabilidad: 3
+  - Mantenibilidad: 13
+
+A su vez, se encontraron 2 vulnerabilidades de seguridad. La más importante se refiere a la cadena de conexión con la base de datos, que tiene la contraseña escrita en duro (hard-code). La segunda vulnerabilidad encontrada se refiere a la política de CORS (Cross Origin Resource Sharing), que está configurada en su modo más permisivo (Allow Any).
+
+En este caso, SonarCloud está señalando algunas cuestiones fundamentales que afectan directamente la seguridad y la integridad de la API y los datos que esta gestiona. Además, sugiere algunas modificaciones dentro del código que aumentarían su calidad, como métodos que deberían ser marcados como estáticos (static) o funciones que deberían ser asíncronas (async).
