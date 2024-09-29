@@ -388,3 +388,230 @@ Dentro del análisis del código de backend, se encontraron un total de 16 probl
 A su vez, se encontraron 2 vulnerabilidades de seguridad. La más importante se refiere a la cadena de conexión con la base de datos, que tiene la contraseña escrita en duro (hard-code). La segunda vulnerabilidad encontrada se refiere a la política de CORS (Cross Origin Resource Sharing), que está configurada en su modo más permisivo (Allow Any).
 
 En este caso, SonarCloud está señalando algunas cuestiones fundamentales que afectan directamente la seguridad y la integridad de la API y los datos que esta gestiona. Además, sugiere algunas modificaciones dentro del código que aumentarían su calidad, como métodos que deberían ser marcados como estáticos (static) o funciones que deberían ser asíncronas (async).
+
+### Pruebas de integración con Cypress
+A continuación, se implementan mediante Cypress pruebas de integración sobre las validaciones adicionales realizadas durante el desarrollo del trabajo práctico Nº6. Debido a que las validaciones incluían la creación y modificación de los empleados, las pruebas de integración fueron separadas en dos archivos: "createEmployee_test.cy.js" y "editEmployee_test.cy.js", ambos ubicados dentro del directorio "cypress/e2e". Cada archivo contiene 6 pruebas, una por cada validación implementada.
+
+A modo de referencia, las validaciones implementadas anteriormente en el código son las siguientes:
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+Para mantener la integridad de los datos contenidos en la aplicación, dentro de cada archivo de pruebas se implementó una función que crea un nuevo empleado, el cual se utiliza para realizar las correspondientes validaciones y modificaciones.
+
+```javascript
+before(() => {
+        cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+        cy.get('.btn').click();
+        cy.get('.form-control').clear();
+        cy.get('.form-control').type('test employee');
+        cy.get('.btn').click();
+});
+```
+
+A su vez, luego de finalizar las pruebas, se elimina este empleado. De este modo, se asegura de que los datos contenidos en la base sean exactamente los mismos al iniciar y finalizar las pruebas.
+
+```javascript
+after(() => {
+        cy.visit(homeURL);
+        cy.get('tr:last-child > :nth-child(5) > a > .fa').click();
+});
+```
+
+A continuación, se muestran las pruebas de integración creadas, las cuales fueron principalmente escritas utilizando Cypress Studio.
+
+#### Creación de empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```javascript
+it('Should fail to create an employee when name contains numbers', () => {
+    cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+    /* ==== Generated with Cypress Studio ==== */
+    cy.get('.btn').click();
+    cy.get('.form-control').clear('E');
+    cy.get('.form-control').type('Employee 1');
+    cy.get('.btn').click();
+    cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no debe contener números. ');
+    /* ==== End Cypress Studio ==== */
+})
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```javascript
+it('Should format employee name when creating an employee', () => {
+    cy.visit('http://localhost:4200') // Colocar la url local o de Azure de nuestro front
+
+    cy.get('tr:last-child > :nth-child(2)').should('have.text', ' Test EMPLOYEE ');
+})
+```
+
+Nota: para esta prueba se utiliza el empleado creado anteriormente en la función "before()".
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+```javascript
+it('Should fail to create an already created employee', () => {
+    cy.visit('http://localhost:4200') // Colocar la url local o de Azure de nuestro front
+
+    /* ==== Generated with Cypress Studio ==== */
+    cy.get('.btn').click();
+    cy.get('.form-control').clear();
+    cy.get('.form-control').type('Test employee');
+    cy.get('.btn').click();
+    cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El empleado ya se encuentra registrado. ');
+    cy.go('back');
+    /* ==== End Cypress Studio ==== */
+})
+```
+
+Nota: para esta prueba se utiliza el empleado creado anteriormente en la función "before()".
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```javascript
+it('Should fail to create an employee when a part of name is of length 1', () => {
+    cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+    /* ==== Generated with Cypress Studio ==== */
+    cy.get('.btn').click();
+    cy.get('.form-control').clear('N');
+    cy.get('.form-control').type('N Employee');
+    cy.get('.btn').click();
+    cy.get('div.toast-message.ng-star-inserted').should('have.text', ' Los nombres y apellidos del empleado debe tener una longitud mayor a 1 letra. ');
+    /* ==== End Cypress Studio ==== */
+})
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```javascript
+it('Should fail to create an employee when name is longer than 100', () => {
+    cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+    const invalidName = 'a'.repeat(120);
+
+    cy.get('.btn').click();
+    cy.get('.form-control').clear('a');
+    cy.get('.form-control').type(invalidName);
+    cy.get('.btn').click();
+    cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no puede contener más de 100 letras. ');
+    
+})
+```
+
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```javascript
+it('Should fail to create employee when name contains repeated characters', () => {
+    cy.visit('http://localhost:4200') // Colocar la url local o de Azure de nuestro front
+
+    /* ==== Generated with Cypress Studio ==== */
+    cy.get('.btn').click();
+    cy.get('.form-control').clear('N');
+    cy.get('.form-control').type('New emploeeee');
+    cy.get('.btn').click();
+    cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no debe contener caracteres repetidos de manera excesiva. ');
+    /* ==== End Cypress Studio ==== */
+})
+```
+
+#### Actualización del empleado
+1. Verificar que el nombre no contenga números, ya que no es común en los nombres de empleados.
+
+```javascript
+it('Should fail to update an employee when name contains numbers', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+  /* ==== Generated with Cypress Studio ==== */
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.form-control').clear('Test EMPLOYEE ');
+  cy.get('.form-control').type('Test EMPLOYEE 1');
+  cy.get('.btn').click();
+  cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no debe contener números. ');
+  /* ==== End Cypress Studio ==== */
+})
+```
+
+2. Almacenar el nombre en la BD siempre con la primera letra de los nombres en Mayuscula y todo el apellido en Mayusculas.
+
+```javascript
+it('Should format employee name when updating an employee', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+  /* ==== Generated with Cypress Studio ==== */
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.form-control').clear();
+  cy.get('.form-control').type('updated test employee');
+  cy.get('.btn').click();
+  cy.get('tr:last-child > :nth-child(2)').should('have.text', ' Updated Test EMPLOYEE ');
+  /* ==== End Cypress Studio ==== */
+})
+```
+
+3. Al agregar y al editar un empleado, controlar que el nombre del empleado no esté repetido.
+
+```javascript
+it('Should fail to update an already created employee', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+  /* ==== Generated with Cypress Studio ==== */
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.btn').click();
+  cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El empleado ya se encuentra registrado. ');
+  /* ==== End Cypress Studio ==== */
+})
+```
+
+4. Asegurar que cada parte del nombre (separada por espacios) tenga más de un carácter.
+
+```javascript
+it('Should fail to update an employee when a part of name is of length 1', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+  /* ==== Generated with Cypress Studio ==== */
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.form-control').clear();
+  cy.get('.form-control').type('T Employee');
+  cy.get('.btn').click();
+  cy.get('div.toast-message.ng-star-inserted').should('have.text', ' Los nombres y apellidos del empleado debe tener una longitud mayor a 1 letra. ');
+  /* ==== End Cypress Studio ==== */
+})
+```
+
+5. La longitud máxima del nombre y apellido del empleado debe ser de 100 caracteres.
+
+```javascript
+it('Should fail to update an employee when name is longer than 100', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+  const invalidName = 'a'.repeat(120);
+
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.form-control').clear();
+  cy.get('.form-control').type(invalidName);
+  cy.get('.btn').click();
+  cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no puede contener más de 100 letras. ');
+  
+})
+```
+
+6. Evitar que se ingresen caracteres repetidos de forma excesiva.
+
+```javascript
+it('Should fail to update employee when name contains repeated characters', () => {
+  cy.visit(homeURL) // Colocar la url local o de Azure de nuestro front
+
+  /* ==== Generated with Cypress Studio ==== */
+  cy.get('tr:last-child > :nth-child(4) > a > .fa').click();
+  cy.get('.form-control').clear('N');
+  cy.get('.form-control').type('New emploeeee');
+  cy.get('.btn').click();
+  cy.get('div.toast-message.ng-star-inserted').should('have.text', ' El nombre del empleado no debe contener caracteres repetidos de manera excesiva. ');
+  /* ==== End Cypress Studio ==== */
+})
+```
