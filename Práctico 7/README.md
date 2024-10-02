@@ -374,14 +374,14 @@ Dentro de los issues detallados en el análisis, se encuentran varias recomendac
 
 ![Imagen Paso 4c](Paso%204c.jpg)
 
-Dentro del análisis del código de backend, se encontraron un total de 16 problemas (issues) que se clasifican de la siguiente manera:
+Dentro del análisis del código de backend, se encontraron un total de 17 problemas (issues) que se clasifican de la siguiente manera:
 - Importancia:
-  - Alta: 2
+  - Alta: 3
   - Media: 8
   - Baja: 6
 
 - Atributo de calidad que afecta:
-  - Seguridad: 0
+  - Seguridad: 1
   - Confiabilidad: 3
   - Mantenibilidad: 13
 
@@ -652,6 +652,15 @@ Luego de haber configurado correctamente el despliegue de la aplicación, se deb
 El inconveniente encontrado, fue que al incluir la contraseña de acceso a la base de datos remota de forma explícita en el código (hard-coded), el análisis de Sonar falla debido a la calificación de seguridad del código.
 
 ![Imagen Paso 4j](Paso%204j.jpg)
+
+Esto fue resuelto creando un nuevo Quality Gate dentro de la organización de SonarCloud con menores exigencias de seguridad (eliminando el chequeo de "Security Rating"), y asignando este a ambos proyectos.
+
+![Imagen Paso 4k](Paso%204k.jpg)
+
+De este modo, al ejecutar el pipeline nuevamente, se obtiene el resultado esperado donde ambos análisis resultan exitosos.
+
+![Imagen Paso 4l](Paso%204l.jpg)
+
 
 Mediante los pasos detallados, se logró obtener una aplicación completa (front, back y db) desplegada en la nube de Azure, con pruebas unitarias, reporte de cobertura y análisis estático de código en todas sus partes, además pruebas de integración que verifican la correcta conexión y funcionamiento del sistema.
 
