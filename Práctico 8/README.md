@@ -42,7 +42,7 @@ Se agregan las siguientes variables dentro del pipeline a las anteriormente crea
 
 ```yaml
 variables:
-  ConnectedServiceName: 'Azure Resource Manager'
+  ConnectedServiceName: 'AzureResourceManager'
   acrLoginServer: 'mcingsw3uccacr.azurecr.io'
   backImageName: 'employee-crud-api'
 ```
