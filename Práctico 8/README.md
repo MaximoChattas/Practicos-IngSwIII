@@ -92,7 +92,7 @@ Se agrega una nueva etapa al pipeline en la cual se construye y publica el conte
             command: build
             repository: $(acrLoginServer)/$(backImageName)
             dockerfile: $(Pipeline.Workspace)/dockerfile-back/dockerfile
-            buildContext: $(Pipeline.Workspace)/drop-back
+            buildContext: $(Pipeline.Workspace)/dotnet-drop
             tags: 'latest'
 
         - task: Docker@2
@@ -102,3 +102,77 @@ Se agrega una nueva etapa al pipeline en la cual se construye y publica el conte
             repository: $(acrLoginServer)/$(backImageName)
             tags: 'latest'
 ```
+
+## Paso 7
+Se ejecuta el pipeline con las modificaciones anteriormente descritas, el cual finaliza con éxito.
+
+![Imagen Paso 7a](Paso%207a.jpg)
+
+Se verifica que dentro del recurso ACR anteriormente creado, haya una imagen con el nombre definido dentro de la variable del pipeline.
+
+![Imagen Paso 7b](Paso%207b.jpg)
+
+## Paso 8
+A la etapa anteriormente creada (), se le agrega un nuevo job que permite construir y subir la imagen de frontend de Docker al recurso ACR.
+
+```yaml
+- job: docker_build_and_push_front
+      displayName: 'Construir y Subir Imagen Docker de Front a ACR'
+      pool:
+        vmImage: 'ubuntu-latest'
+        
+      steps:
+        - checkout: self
+
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Descargar Artefactos de Front'
+          inputs:
+            buildType: 'current'
+            artifactName: 'angular-drop'
+            targetPath: '$(Pipeline.Workspace)/angular-drop'
+        
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Descargar Dockerfile de Back'
+          inputs:
+            buildType: 'current'
+            artifactName: 'dockerfile-front'
+            targetPath: '$(Pipeline.Workspace)/dockerfile-front'
+
+        - task: AzureCLI@2
+          displayName: 'Iniciar Sesión en Azure Container Registry (ACR)'
+          inputs:
+            azureSubscription: '$(ConnectedServiceName)'
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az acr login --name $(acrLoginServer)
+    
+        - task: Docker@2
+          displayName: 'Construir Imagen Docker para Back'
+          inputs:
+            command: build
+            repository: $(acrLoginServer)/$(frontImageName)
+            dockerfile: $(Pipeline.Workspace)/dockerfile-front/Dockerfile
+            buildContext: $(Pipeline.Workspace)/angular-drop
+            tags: 'latest'
+
+        - task: Docker@2
+          displayName: 'Subir Imagen Docker de Back a ACR'
+          inputs:
+            command: push
+            repository: $(acrLoginServer)/$(frontImageName)
+            tags: 'latest'
+```
+
+Además, se agregó una nueva variable donde se define el nombre de la imagen de frontend que será subida al ACR.
+```yaml
+frontImageName: 'employee-crud-angular'
+```
+
+Se ejecuta el pipeline y se observa que el mismo finaliza de manera exitosa.
+
+![Imagen Paso 8a](Paso%208a.jpg)
+
+A su vez, dentro del recurso ACR se pueden ver ambas imágenes correctamente subidas.
+
+![Imagen Paso 8b](Paso%208b.jpg)
