@@ -248,3 +248,151 @@ Dentro de Azure Portal, se observa que hay un nuevo recurso Azure Container Inst
 Se navega a la URL provista y se observa que el contenedor se encuentra correctamente conectado a la base de datos.
 
 ![Imagen Paso 10c](Paso%2010c.jpg)
+
+## Paso 11
+A continuación, realizaremos el despliegue del frontend del proyecto en un Azure Container Instance utilizando 
+variables de entorno para la API URL, lo cual permitirá utilizar el mismo archivo para múltiples despliegues en diferentes entornos.
+Para esto, fue necesario modificar o crear los siguientes archivos.
+
+- src/environments/environments.ts
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: (typeof window !== 'undefined' && window.env && window.env.apiUrl) 
+             ? window.env.apiUrl
+             : 'http://localhost:7150/api/Employee' // Valor por defecto
+};
+```
+
+- src/environments/environments.prod.ts
+
+```typescript
+export const environment = {
+  production: true,
+  apiUrl: (typeof window !== 'undefined' && window.env && window.env.apiUrl) 
+             ? window.env.apiUrl
+             : 'http://localhost:7150/api/Employee' // Valor por defecto
+};
+```
+
+- src/typing.d.ts
+
+```typescript
+interface Window {
+    env: {
+      apiUrl: string;
+    };
+  }
+```
+
+Luego de modificar el código, se crea un nuevo job en el pipeline que crea un Azure Container Instance y realiza el deploy de la imagen de Frontend.
+
+Nuevas variables:
+
+```yaml
+  frontContainerInstanceNameQA: 'chattas-crud-front-qa'
+  frontImageTag: 'latest' 
+  container-cpu-front-qa: 1
+  container-memory-front-qa: 1.5
+```
+
+Job creado:
+
+```yaml
+    - job: deploy_front_to_aci_qa
+      displayName: 'Desplegar Frontend en Azure Container Instances (ACI) QA'
+      pool:
+        vmImage: 'ubuntu-latest'
+        
+      steps:
+
+        - task: AzureCLI@2
+          displayName: 'Desplegar Imagen Docker de Front en ACI QA'
+          inputs:
+            azureSubscription: '$(ConnectedServiceName)'
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              echo "Resource Group: $(ResourceGroupName)"
+              echo "Container Instance Name: $(frontContainerInstanceNameQA)"
+              echo "ACR Login Server: $(acrLoginServer)"
+              echo "Image Name: $(frontImageName)"
+              echo "Image Tag: $(frontImageTag)"
+          
+              az container delete --resource-group $(ResourceGroupName) --name $(frontContainerInstanceNameQA) --yes
+
+              az container create --resource-group $(ResourceGroupName) \
+                --name $(frontContainerInstanceNameQA) \
+                --image $(acrLoginServer)/$(frontImageName):$(frontImageTag) \
+                --registry-login-server $(acrLoginServer) \
+                --registry-username $(acrName) \
+                --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
+                --dns-name-label $(frontContainerInstanceNameQA) \
+                --ports 80 \
+                --environment-variables API_URL="$(api_url_aci_qa)" \
+                --restart-policy Always \
+                --cpu $(container-cpu-front-qa) \
+                --memory $(container-memory-front-qa)
+```
+
+Además, se creó una nueva variable de entorno mediante la GUI de Azure llamada "api_url_aci_qa" que contiene la URL de la API desplegada en el recurso ACI anteriormente creado.
+
+Luego de ejecutar el pipeline, dentro de Azure Portal se creó un nuevo recurso ACI.
+
+![Imagen Paso 11a](Paso%2011a.jpg)
+
+Al navegar a la URL del contenedor, se muestra que el mismo está correctamente conectado al backend debido a que se ven los datos almacenados en la DB, además de contener el log con la URL extraída de la variable global de Azure Pipeline.
+
+![Imagen Paso 11b](Paso%2011b.jpg)
+
+## Paso 12
+Para agregar la ejecución de las pruebas de integración en el entorno de QA de los Azure Container Instances, se modificaron los archivos de Cypress para permitir que los mismos reciban variables de entorno donde se definen las URL de los contenedores (o cualquier entorno en el que se deban realizar las pruebas).
+
+```javascript
+  const homeURL = Cypress.env('homeUrl');
+  const apiURL = Cypress.env('apiUrl');
+```
+
+Luego, se agregó en el pipeline un nuevo job posterior a los despliegues en ACI, de los cuales depende. En este, se ejecutan y publican las pruebas de integración anteriormente escritas.
+
+```yaml
+    - job: RunCypressTests
+      displayName: 'Run Cypress Tests'
+      dependsOn: [deploy_front_to_aci_qa, deploy_api_to_aci_qa]
+      condition: succeeded()
+      steps:
+        - script: npm install ts-node typescript --save-dev
+          displayName: 'Install typescript'
+          workingDirectory: '$(frontPath)'
+
+        - script: npx cypress run --env apiUrl=$(api_url_aci_qa),homeUrl=$(front_url_aci_qa)
+          workingDirectory: '$(frontPath)'
+          displayName: 'Run integration tests'
+          continueOnError: true
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: '*.xml'
+            searchFolder: '$(frontPath)/cypress/results'
+            testRunTitle: 'Cypress Integration Tests'
+```
+
+Luego de ejecutar el pipeline, en el apartado Tests se observan los resultados publicados de las pruebas de Cypress junto con los tests unitarios.
+
+![Imagen Paso 12](Paso%2012.jpg)
+
+## Paso 13
+Finalmente, se agrega una nueva etapa que realiza un despliegue de la aplicación en Azure Container Instances en un ambiente de producción. La misma es similar a la anteriormente definida, pero se agrega como requisito una aprobación manual del usuario antes de comenzar el despliegue mediante el uso de environments.
+
+Al ejecutar el pipeline, se observa que el mismo se detiene al iniciar esta etapa permitiendo aprobar o denegar el despliegue.
+
+![Imagen Paso 13a](Paso%2013a.jpg)
+
+Una vez aprobado el despliegue y finalizada esta etapa, dentro del grupo de recursos en Azure Portal se observa que ambos ACI fueron creados exitosamente.
+
+![Imagen Paso 13b](Paso%2013b.jpg)
+
+Al navegar a la URL provista por el contenedor de Front, se puede ver que los datos cargan correctamente y que los mismos están siendo obtenidos del contenedor PROD.
+
+![Imagen Paso 13c](Paso%2013c.jpg)
