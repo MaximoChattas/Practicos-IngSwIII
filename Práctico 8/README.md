@@ -1,4 +1,9 @@
 # Trabajo Práctico 8
+## Nota
+Los prácticos Nº8 y Nº9 fueron realizados en una nueva cuenta de Azure con el objetivo de utilizar los U$S 200 de créditos gratuitos provistos por Microsoft. A continuación se adjunta el enlace al nuevo proyecto.
+
+[https://dev.azure.com/maximochattas/Angular-Dotnet%20Project](https://dev.azure.com/maximochattas/Angular-Dotnet%20Project)
+
 ## Paso 1
 Se crea un directorio "docker" dentro del directorio raíz del proyecto que contiene 2 carpetas (api y front), y dentro de cada una de ellas se crean los correspondientes Dockerfile como se muestra a continuación.
 
