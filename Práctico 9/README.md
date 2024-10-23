@@ -702,7 +702,8 @@ stages:
           testResultsFormat: 'JUnit'
           testResultsFiles: '*.xml'
           searchFolder: '$(frontPath)/cypress/results'
-          testRunTitle: 'Cypress Integration Tests'
+          testRunTitle: 'Cypress Web App Tests'
+          failTaskOnFailedTests: true
 
 # -------------------------------------------------------------------------------
 # |       STAGE DEPLOY FRONTEND AND BACKEND TO AZURE WEB APPS PROD                 |
@@ -875,7 +876,8 @@ stages:
             testResultsFormat: 'JUnit'
             testResultsFiles: '*.xml'
             searchFolder: '$(frontPath)/cypress/results'
-            testRunTitle: 'Cypress Integration Tests'
+            testRunTitle: 'Cypress Container Instances Tests'
+            failTaskOnFailedTests: true
 
 
 # -------------------------------------------------------------------------------
@@ -1066,7 +1068,8 @@ stages:
             testResultsFormat: 'JUnit'
             testResultsFiles: '*.xml'
             searchFolder: '$(frontPath)/cypress/results'
-            testRunTitle: 'Cypress Integration Tests'
+            testRunTitle: 'Cypress App Services Tests'
+            failTaskOnFailedTests: true
 
 # -------------------------------------------------------------------------------
 # |     STAGE DEPLOY FRONTEND AND BACKEND TO AZURE APP SERVICES PROD             |
@@ -1179,3 +1182,28 @@ Se adjuntan a continuación las URL a los recursos de Azure funcionando. Los mis
 - [ACI Prod](http://chattas-crud-front-prod.brazilsouth.azurecontainer.io)
 - [APP Service QA](https://chattas-as-crud-front-qa.azurewebsites.net)
 - [APP Service Prod](https://chattas-as-crud-front-prod.azurewebsites.net)
+
+## Pruebas fallidas
+Al agregar el input
+```yaml
+failTaskOnFailedTests: true
+```
+en la tarea de publicación de las pruebas, si alguna de las mismas falla, lo mismo sucede con la etapa del pipeline en la que se ejecutaron. Esto implica que ante una prueba fallida, las etapas que dependan de esta no serán ejecutadas. A continuación, se muestra esto en la práctica modificando algunos archivos de prueba para forzar un fallo en las mismas.
+
+### Pruebas unitarias
+Se modificó un archivo de prueba de la API y uno del Front para forzar un fallo en las pruebas unitarias de cada uno, y al ejecutar el pipeline se tiene el resultado que se observa a continuación.
+
+![Imagen 5](Imagen%205.jpg)
+
+Como se puede ver, todas las etapas del pipeline que dependían de BuildAndTest fueron salteadas (skipped) debido al fallo de las pruebas unitarias. A su vez, se muestra a continuación que aún habiendo fallado, los resultados de las pruebas fueron publicados correctamente en el apartado "Tests" del pipeline.
+
+![Imagen 6](Imagen%206.jpg)
+
+### Pruebas de integración
+Al igual que en el apartado anterior, se modificaron archivos de las pruebas de integración de Cypress para forzar un fallo en las mismas.
+
+![Imagen 7](Imagen%207.jpg)
+
+Se observa que todos los despliegues al ambiente de producción, debido a que los mismos dependen de sus correspondientes despliegues en QA, fueron omitidos como consecuencia del fallo de las pruebas de integración. Aún así, los resultados de todas las pruebas fueron publicados adecuadamente.
+
+![Imagen 8](Imagen%208.jpg)
