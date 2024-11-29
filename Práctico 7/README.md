@@ -6,22 +6,22 @@ Se instala la dependencia de Karma-Coverage en Angular mediante el comando:
 npm install karma-coverage --save-dev
 ```
 
-![Imagen Paso 1a](Paso%201a.jpg)
+![Imagen Paso 1a](Imágenes/Paso%201a.jpg)
 
 Se edita el archivo karma.conf.js con el código provisto.
 
-![Imagen Paso 1b](Paso%201b.jpg)
+![Imagen Paso 1b](Imágenes/Paso%201b.jpg)
 
 Se agrega el paquete coverlet.collector en el proyecto de Dotnet mediante el comando:
 ```bash
 dotnet add package coverlet.collector
 ```
 
-![Imagen Paso 1c](Paso%201c.jpg)
+![Imagen Paso 1c](Imágenes/Paso%201c.jpg)
 
 Se crea un nuevo proyecto en Azure DevOps (Angular-Dotnet Project), en el cual fue importado el repositorio del trabajo práctico 6 con los cambios anteriormente realizados.
 
-![Imagen Paso 1d](Paso%201d.jpg)
+![Imagen Paso 1d](Imágenes/Paso%201d.jpg)
 
 Dentro de este proyecto, se creó un build pipeline para la API de .NET y la aplicación de Angular que incluye la ejecución y publicación de los resultados de los casos de prueba. El pipeline cuenta con 1 etapa, con 2 jobs. Se muestra a continuación el código creado.
 
@@ -137,24 +137,24 @@ stages:
 
 Se ejecuta el pipeline que finaliza de manera exitosa.
 
-![Imagen Paso 1e](Paso%201e.jpg)
+![Imagen Paso 1e](Imágenes/Paso%201e.jpg)
 
 A continuación se muestran los resultados de los casos de prueba publicados.
 
-![Imagen Paso 1f](Paso%201f.jpg)
+![Imagen Paso 1f](Imágenes/Paso%201f.jpg)
 
 Los 31 casos de prueba resultaron exitosos (15 de .NET y 16 de Angular).
 
 Además, se muestra el reporte de cobertura de código.
 
-![Imagen Paso 1g](Paso%201g.jpg)
+![Imagen Paso 1g](Imágenes/Paso%201g.jpg)
 
 En los resultados, se obtuvo que las pruebas cubren un 72,61% del total de las líneas de código del proyecto. Esto incluye la API de .NET y la aplicación de Angular.
 
 ## Paso 2
 Siguiendo el instructivo, se integra SonarCloud a la organización de Azure DevOps, instalando y configurando la extensión correspondiente.
 
-![Imagen Paso 2a](Paso%202a.jpg)
+![Imagen Paso 2a](Imágenes/Paso%202a.jpg)
 
 Luego, se agrega dentro del Pipeline del paso anterior las siguientes tareas.
 
@@ -182,15 +182,15 @@ Después del build de back:
 
 Una vez ejecutado el pipeline con las nuevas tareas, se tiene en el resultado un link al análisis realizado por SonarCloud.
 
-![Imagen Paso 2b](Paso%202b.jpg)
+![Imagen Paso 2b](Imágenes/Paso%202b.jpg)
 
 Ingresando al link, podemos acceder al detalle del análisis.
 
-![Imagen Paso 2c](Paso%202c.jpg)
+![Imagen Paso 2c](Imágenes/Paso%202c.jpg)
 
 Uno de los apartados más importantes del análisis de SonarCloud se encuentra en el apartado de "Security Hotspots", donde se pueden ver las vulnerabilidades de seguridad encontradas en el código. En este caso, se encontraron 2 de ellas, siendo que la más importante se refiere a la cadena de conexión con la base de datos, que tiene la contraseña escrita en duro (hard-code). La segunda vulnerabilidad encontrada se refiere a la política de CORS (Cross Origin Resource Sharing), que está configurada en su modo más permisivo (Allow Any).
 
-![Imagen Paso 2d](Paso%202d.jpg)
+![Imagen Paso 2d](Imágenes/Paso%202d.jpg)
 
 Dentro del apartado "Measures" se tienen algunas métricas del código, como su complejidad ciclomática, cobertura de los casos de prueba, confiabilidad, mantenibilidad y demás cuestiones referidas a la calidad del mismo. A su vez, en "Issues", la aplicación ofrece algunas recomendaciones respecto a buenas prácticas para mejorar la calidad del código.
 
@@ -200,30 +200,30 @@ En primer lugar, se instala la dependencia de Cypress dentro del directorio raí
 npm install cypress --save-dev
 ```
 
-![Imagen Paso 3a](Paso%203a.jpg)
+![Imagen Paso 3a](Imágenes/Paso%203a.jpg)
 
 Luego, se abre Cypress mediante el comando:
 ```bash
 npx cypress open
 ```
 
-![Imagen Paso 3b](Paso%203b.jpg)
+![Imagen Paso 3b](Imágenes/Paso%203b.jpg)
 
 Esto inicia Cypress, en donde se configuran los tests de tipo E2E (end to end), como se muestra a continuación.
 
-![Imagen Paso 3c](Paso%203c.jpg)
+![Imagen Paso 3c](Imágenes/Paso%203c.jpg)
 
 Se ejecuta una de las pruebas genéricas generadas por Cypress, para verificar su correcto funcionamiento.
 
-![Imagen Paso 3d](Paso%203d.jpg)
+![Imagen Paso 3d](Imágenes/Paso%203d.jpg)
 
 Dentro de la carpeta cypress/e2e creamos el primer caso de prueba que verifica que el título del sitio sea "EmployeeCrudAngular". La URL que debe visitar es "http://localhost:4200" debido a que el proyecto corre de forma local en mi dispositivo.
 
-![Imagen Paso 3e](Paso%203e.jpg)
+![Imagen Paso 3e](Imágenes/Paso%203e.jpg)
 
 Se observa que la prueba finaliza con resultado exitoso.
 
-![Imagen Paso 3f](Paso%203f.jpg)
+![Imagen Paso 3f](Imágenes/Paso%203f.jpg)
 
 A su vez, es posible ejecutar las pruebas sin la interfaz gráfica, es decir, en modo "headless". Esto se hace mediante el comando:
 ```bash
@@ -232,23 +232,23 @@ npx cypress run
 
 Se observa que la prueba escrita anteriormente se ejecuta con éxito (junto con las demás pruebas genéricas escritas por Cypress).
 
-![Imagen Paso 3g](Paso%203g.jpg)
+![Imagen Paso 3g](Imágenes/Paso%203g.jpg)
 
 Para simular un fallo, se modifica el título esperado dentro de la prueba escrita anteriormente. Además, se quitaron las pruebas genéricas para agilizar el proceso y que no interfieran con los resultados.
 
-![Imagen Paso 3h](Paso%203h.jpg)
+![Imagen Paso 3h](Imágenes/Paso%203h.jpg)
 
 Esta prueba fallida, creó un screenshot dentro de la carpeta "cypress/screenshots" mostrando la razón por la cual falló.
 
-![Imagen Paso 3i](Paso%203i.jpg)
+![Imagen Paso 3i](Imágenes/Paso%203i.jpg)
 
 Luego, se edita el archivo "cypress.config.ts" definiendo las configuraciones del reporte que debe generar, y habilitando experimentalStudio. Esto permitirá generar nuevas pruebas mediante la interacción con la página.
 
-![Imagen Paso 3j](Paso%203j.jpg)
+![Imagen Paso 3j](Imágenes/Paso%203j.jpg)
 
 Utilizando esta herramienta, se prueba la creación de un nuevo empleado con mi nombre completo.
 
-![Imagen Paso 3k](Paso%203k.jpg)
+![Imagen Paso 3k](Imágenes/Paso%203k.jpg)
 
 El test inicialmente falla debido a la validación de empleado duplicado definida en el práctico anterior (al intentar crear más de una vez un empleado con el mismo nombre). Por este motivo, se agrega dentro del mismo la eliminación del empleado, luego de validar que el mismo se crea correctamente. Luego de realizar algunos ajustes dentro del código generado, se obtiene la siguiente prueba.
 ```javascript
@@ -297,7 +297,7 @@ describe('editEmployeeTest', () => {
 
 Se verifica que todas las pruebas escritas anteriormente finalicen con éxito. Para esto, se corre el comando "npx cypress run" en la terminal.
 
-![Imagen Paso 3l](Paso%203l.jpg)
+![Imagen Paso 3l](Imágenes/Paso%203l.jpg)
 
 ## Paso 4
 
@@ -349,13 +349,13 @@ sonar.organization=maxichattas
 
 Una vez implementadas estas modificaciones, se ejecuta el pipeline nuevamente. Dentro de sus resutlados, además de los casos de prueba y cobertura de código, se tiene en el apartado de "Extensions" los reportes generados por SonarCloud para Angular y Dotnet.
 
-![Imagen Paso 4a](Paso%204a.jpg)
+![Imagen Paso 4a](Imágenes/Paso%204a.jpg)
 
 Ingresando a los links provistos, se puede ver en detalle los análisis realizados.
 
 #### Proyecto de Angular
 
-![Imagen Paso 4b](Paso%204b.jpg)
+![Imagen Paso 4b](Imágenes/Paso%204b.jpg)
 
 Dentro del análisis del código de frontend, no se encontró ninguna vulnerabilidad en términos de seguridad, pero sí algunos inconvenientes (issues). En total fueron 36, y se clasificaron de la siguiente manera:
 - Importancia:
@@ -372,7 +372,7 @@ Dentro de los issues detallados en el análisis, se encuentran varias recomendac
 
 #### Proyecto de Dotnet
 
-![Imagen Paso 4c](Paso%204c.jpg)
+![Imagen Paso 4c](Imágenes/Paso%204c.jpg)
 
 Dentro del análisis del código de backend, se encontraron un total de 17 problemas (issues) que se clasifican de la siguiente manera:
 - Importancia:
@@ -627,39 +627,39 @@ Para desplegar la aplicación dentro de la nube de Azure, fue necesario crear va
 
 Se muestra a continuación la WebApp que contendrá la API de .NET de la aplicación.
 
-![Imagen Paso 4e](Paso%204e.jpg)
+![Imagen Paso 4e](Imágenes/Paso%204e.jpg)
 
 La WebApp tiene sistema operativo Windows y está configurada para alojar a aplicaciones de tipo Dotnet - v6.0.
 
 Por otro lado, se tiene la WebApp que contendrá el frontend del proyecto.
 
-![Imagen Paso 4f](Paso%204f.jpg)
+![Imagen Paso 4f](Imágenes/Paso%204f.jpg)
 
 Este recurso también cuenta con sistema operativo Windows, pero cuenta con un runtime stack de Node --20, coherente con la aplicación de Angular que deberá alojar.
 
 A su vez, fue necesario crear una base de datos SQL que será la fuente de información de la API. Para esto, se creó otro recurso dentro de Azure, como se muestra a continuación.
 
-![Imagen Paso 4g](Paso%204g.jpg)
+![Imagen Paso 4g](Imágenes/Paso%204g.jpg)
 
 Una vez dispuestos los recursos necesarios, dentro del código se modificó la cadena de conexión a la base de datos para que apunte al recurso dentro de Azure creado, además de la URL de la API a la cual el frontend debe dirigir las peticiones HTTP. A su vez, se crearon nuevas tareas dentro del pipeline que tomarán los artefactos generados en la etapa anterior y realizarán el correspondiente despliegue a las WebApps. Al ejecutar el pipeline y navegar a la URL provista, se observa que la aplicación está correctamente desplegada.
 
-![Imagen Paso 4h](Paso%204h.jpg)
+![Imagen Paso 4h](Imágenes/Paso%204h.jpg)
 
 Luego de haber configurado correctamente el despliegue de la aplicación, se deben agregar en el pipeline las tareas correspondientes a las pruebas E2E de Cypress. Para esto, dentro del directorio raíz de la aplicación de Angular, se incluyó el archivo "cypress.config.ts" donde están las configuraciones necesarias para la ejecución de las pruebas. Luego de realizar el despliegue nuevamente con estas modificaciones, dentro de la pestaña "Test" se pueden ver los resultados de todas las pruebas ejecutadas (unitarias de .NET y Angular, e integración).
 
-![Imagen Paso 4i](Paso%204i.jpg)
+![Imagen Paso 4i](Imágenes/Paso%204i.jpg)
 
 El inconveniente encontrado, fue que al incluir la contraseña de acceso a la base de datos remota de forma explícita en el código (hard-coded), el análisis de Sonar falla debido a la calificación de seguridad del código.
 
-![Imagen Paso 4j](Paso%204j.jpg)
+![Imagen Paso 4j](Imágenes/Paso%204j.jpg)
 
 Esto fue resuelto creando un nuevo Quality Gate dentro de la organización de SonarCloud con menores exigencias de seguridad (eliminando el chequeo de "Security Rating"), y asignando este a ambos proyectos.
 
-![Imagen Paso 4k](Paso%204k.jpg)
+![Imagen Paso 4k](Imágenes/Paso%204k.jpg)
 
 De este modo, al ejecutar el pipeline nuevamente, se obtiene el resultado esperado donde ambos análisis resultan exitosos.
 
-![Imagen Paso 4l](Paso%204l.jpg)
+![Imagen Paso 4l](Imágenes/Paso%204l.jpg)
 
 
 Mediante los pasos detallados, se logró obtener una aplicación completa (front, back y db) desplegada en la nube de Azure, con pruebas unitarias, reporte de cobertura y análisis estático de código en todas sus partes, además pruebas de integración que verifican la correcta conexión y funcionamiento del sistema.
