@@ -53,7 +53,7 @@ Se agrega al pipeline una nueva etapa que depende de la etapa de construcción y
 
 Al ejecutar este job dentro del pipeline, se crea en Azure Portal un nuevo recurso.
 
-![Imagen Paso 1](Paso%201.jpg)
+![Imagen Paso 1](Imágenes/Paso%201.jpg)
 
 ## Paso 2
 Se agrega un nuevo job a la etapa anteriormente creada que permite realizar el despliegue de un contenedor del frontend del proyecto en un Azure App Service.
@@ -96,7 +96,7 @@ Se agrega un nuevo job a la etapa anteriormente creada que permite realizar el d
 
 Nuevamente, esto crea un recurso dentro de Azure Portal.
 
-![Imagen Paso 2](Paso%202.jpg)
+![Imagen Paso 2](Imágenes/Paso%202.jpg)
 
 ## Paso 3
 Se agregan las variables necesarias para esta etapa considerando que debe haber un entorno de QA y un entorno de Producción.
@@ -245,13 +245,13 @@ A su vez, se creó una nueva base de datos SQL para el entorno productivo, de mo
 
 Se muestra la nueva base de datos del entorno Prod creada.
 
-![Imagen Paso 5a](Paso%205a.jpg)
+![Imagen Paso 5a](Imágenes/Paso%205a.jpg)
 
 Y los recursos generados a partir de la ejecución de la presente etapa.
 
-![Imagen Paso 5b](Paso%205b.jpg)
+![Imagen Paso 5b](Imágenes/Paso%205b.jpg)
 
-![Imagen Paso 5c](Paso%205c.jpg)
+![Imagen Paso 5c](Imágenes/Paso%205c.jpg)
 
 ## Paso 6
 Se entrega el pipeline completo que consta de las siguientes etapas:
@@ -1159,19 +1159,19 @@ stages:
 ## RESULTADOS
 Las 8 etapas del pipeline finalizan su ejecución de manera exitosa.
 
-![Imagen 1](Imagen%201.jpg)
+![Imagen 1](Imágenes/Imagen%201.jpg)
 
 Las pruebas unitarias (de API y Front) y las pruebas de integración (en los 3 despliegues) son aprobadas.
 
-![Imagen 2](Imagen%202.jpg)
+![Imagen 2](Imágenes/Imagen%202.jpg)
 
 El análisis de Sonar Cloud es aprobado.
 
-![Imagen 3](Imagen%203.jpg)
+![Imagen 3](Imágenes/Imagen%203.jpg)
 
 Se tiene el reporte de cobertura de código del proyecto.
 
-![Imagen 4](Imagen%204.jpg)
+![Imagen 4](Imágenes/Imagen%204.jpg)
 
 ## URLS
 Se adjuntan a continuación las URL a los recursos de Azure funcionando. Los mismos estarán disponibles hasta el día 04/11/2024.
@@ -1193,17 +1193,17 @@ en la tarea de publicación de las pruebas, si alguna de las mismas falla, lo mi
 ### Pruebas unitarias
 Se modificó un archivo de prueba de la API y uno del Front para forzar un fallo en las pruebas unitarias de cada uno, y al ejecutar el pipeline se tiene el resultado que se observa a continuación.
 
-![Imagen 5](Imagen%205.jpg)
+![Imagen 5](Imágenes/Imagen%205.jpg)
 
 Como se puede ver, todas las etapas del pipeline que dependían de BuildAndTest fueron salteadas (skipped) debido al fallo de las pruebas unitarias. A su vez, se muestra a continuación que aún habiendo fallado, los resultados de las pruebas fueron publicados correctamente en el apartado "Tests" del pipeline.
 
-![Imagen 6](Imagen%206.jpg)
+![Imagen 6](Imágenes/Imagen%206.jpg)
 
 ### Pruebas de integración
 Al igual que en el apartado anterior, se modificaron archivos de las pruebas de integración de Cypress para forzar un fallo en las mismas.
 
-![Imagen 7](Imagen%207.jpg)
+![Imagen 7](Imágenes/Imagen%207.jpg)
 
 Se observa que todos los despliegues al ambiente de producción, debido a que los mismos dependen de sus correspondientes despliegues en QA, fueron omitidos como consecuencia del fallo de las pruebas de integración. Aún así, los resultados de todas las pruebas fueron publicados adecuadamente.
 
-![Imagen 8](Imagen%208.jpg)
+![Imagen 8](Imágenes/Imagen%208.jpg)
